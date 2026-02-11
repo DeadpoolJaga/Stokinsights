@@ -1,36 +1,210 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 📈 StokInsights
 
-## Getting Started
+StokInsights is a modern stock research prototype inspired by Robinhood-style UI but focused on **analysis, comparison, live updates and AI-driven predictions**, not trading.
 
-First, run the development server:
+This project demonstrates frontend engineering, API integration, Deterministic Prediction modeling, and scalable system design thinking.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+## 🚀 Problem Statement
+
+Most retail trading platforms focus heavily on buy/sell mechanics, but lack structured, comparative, and contextual research tools.
+
+StokInsights solves this by:
+
+- 📊 Displaying clean historical price visualization (1D / 1W / 3M / 1Y / 5Y)
+- 🧠 Providing an experimental AI-based prediction signal (momentum + technical indicators)
+- 🔍 Enabling structured stock comparison
+- 📰 Surfacing highlights and summarize latest updates
+
+Instead of encouraging transactions, it encourages understanding and analysis.
+
+
+## 🧠 Design Philosophy
+
+This project was built around:
+
+- Clean dark modern UI
+- Modular client/server separation (Next.js App Router)
+- API abstraction layer
+- Expandable architecture (future S&P500 scale)
+- Fast prototype iteration with production-minded structure
+- Mobile-first responsive design
+
+
+## 🏗 Architecture Overview
+
+Client (React + Tailwind)  
+↓  
+Next.js App Router  
+↓  
+API Routes (/api/quote, /api/history, /api/signal)  
+↓  
+External Market Data Source (Stooq / AlphaVantage)  
+
+### Key Design Decisions
+
+- **Server Components** for routing and layout
+- **Client Components** for interactive elements (charts, buttons, signals)
+- Lightweight chart rendering using `lightweight-charts`
+- Tailwind CSS for modern responsive UI
+- Symbol abstraction layer for scalability
+- Separation of prediction signal logic into reusable module
+
+
+## ⚙️ Tech Stack
+
+### Frontend
+- Next.js (App Router)
+- React (Client + Server Components)
+- TypeScript
+- Tailwind CSS
+- Lightweight Charts (TradingView)
+
+### Backend (via Next.js API Routes)
+- REST-style endpoints
+- External stock data APIs (Stooq / Alpha Vantage)
+- Custom quantitative signal computation
+
+### Deployment Ready
+- Vercel compatible
+- Environment-based API keys
+- Easily containerizable
+- Structured for future AWS serverless migration
+
+
+## 🧠 AI Signal (Experimental)
+
+The AI Signal is a lightweight rule-based quantitative prediction model that evaluates:
+
+- Price vs 20-day moving average
+- Price vs 50-day moving average
+- RSI (Relative Strength Index)
+- Short-term momentum
+- Volume deviation from 20-day average
+
+Each metric contributes to a weighted score, producing:
+
+- ⬆ Up Signal
+- ⬇ Down Signal
+- Confidence %
+
+This is NOT financial advice — it is a demonstration of:
+
+- Feature engineering
+- Indicator computation
+- Lightweight modeling
+- Data-to-UI transformation
+- Signal confidence scoring
+
+
+## 📂 Folder Structure
+
+```
+src/
+├── app/
+│   ├── page.tsx
+│   ├── stock/[symbol]/
+│   │   ├── page.tsx
+│   │   ├── signal.client.tsx
+│   │   ├── quote.client.tsx
+│   │   └── tabs.client.tsx
+│   └── api/
+│       ├── quote/
+│       ├── history/
+│       └── signal/
+├── components/
+│   ├── StockChart.tsx
+│   ├── RangeButtons.tsx
+│   └── Logo.tsx
+├── lib/
+│   ├── logos.ts
+│   ├── symbols.ts
+│   └── signalLogic.ts
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛠 How to Run Locally
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 1. Clone repository
 
-## Learn More
+```
+git clone https://github.com/your-username/stokinsights.git
+cd stokinsights
+```
 
-To learn more about Next.js, take a look at the following resources:
+### 2. Install dependencies
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+npm install
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 3. Run development server
 
-## Deploy on Vercel
+```
+npm run dev
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 4. Open in browser
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+http://localhost:3000
+```
+
+
+## 📊 Current Features
+
+- Responsive dark-mode UI
+- Watchlist grid layout with logos
+- Historical price charts (1D / 1W / 3M / 1Y / 5Y)
+- Real-time quote display
+- AI signal indicator with confidence scoring
+- Modular API routing structure
+- Clean mobile-friendly layout
+
+
+## 🌍 Future Enhancements
+
+- 🔎 Search bar with autocomplete
+- 📊 Mini sparklines in watchlist cards
+- 📈 Multi-stock comparison view with overlay charts
+- 📰 AI-generated highlights (news summarization)
+- ⚡ Caching layer (Redis / edge caching)
+- 📦 AWS serverless deployment
+- 📊 Real ML-based predictive modeling
+- 🔐 Authentication + personalized watchlists
+- 📡 WebSocket live updates
+
+
+## 📌 Scalability Plan
+
+To scale from 50 stocks → S&P 500:
+
+- Introduce caching layer
+- Precompute daily indicators
+- Add persistent database (Postgres / DynamoDB)
+- Move signal calculation to serverless compute
+- Introduce background update queue
+- Optimize API rate limiting
+- Add edge caching for charts
+
+
+## 🧪 Performance Considerations
+
+Initial load latency can occur due to:
+
+- External API calls
+- Cold start behavior
+- Chart rendering initialization
+- Network fetch delays
+
+Future improvements include:
+
+- API caching
+- Data prefetching
+- Static generation for popular stocks
+- Incremental revalidation
+
+## 👨‍💻 Author
+
+Ideated, Designed and Built by Jagadeesh Bodavula  
+Focused on systems design, distributed systems, scalable architectures, and applied AI experimentation.

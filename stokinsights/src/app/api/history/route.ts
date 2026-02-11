@@ -40,7 +40,8 @@ export async function GET(req: Request) {
   if (!allowed.includes(range)) return NextResponse.json({ error: "Invalid range" }, { status: 400 });
 
   const key = `history:${symbol}:${range}`;
-  const cached = cacheGet<PricePoint[]>(key);
+  const cached = cacheGet<StooqPoint[]>(key);
+
   if (cached) return NextResponse.json(cached);
 
   try {
