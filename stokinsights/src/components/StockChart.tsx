@@ -16,7 +16,7 @@ type Point = { time: number; close: number };
 export default function StockChart({ symbol }: { symbol: string }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
-  const seriesRef = useRef<ISeriesApi<typeof LineSeries> | null>(null);
+  const seriesRef = useRef<ISeriesApi<"Line"> | null>(null);
 
   const [range, setRange] = useState<"1D" | "1W" | "3M" | "1Y" | "5Y">("1Y");
   const [error, setError] = useState<string | null>(null);
