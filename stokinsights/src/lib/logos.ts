@@ -7,8 +7,10 @@ const DOMAIN_MAP: Record<string, string> = {
   META: "meta.com",
   TSLA: "tesla.com",
   JPM: "jpmorganchase.com",
-  KO: "coca-colacompany.com",
-  PEP: "pepsico.com",
+  SNDK: "sandisk.com",
+  IREN: "iren.com",
+  PANW: "paloalto.com",
+  NFLX: "netflix.com"
 };
 
 export function logoCandidates(symbol: string): string[] {

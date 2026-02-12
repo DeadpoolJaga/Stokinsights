@@ -31,9 +31,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
           <main className="mx-auto max-w-6xl px-4 py-6">{children}</main>
 
-          <footer className="mx-auto max-w-6xl px-4 pb-10 pt-6 text-xs text-zinc-500">
-            Educational project. Not investment advice.
-          </footer>
         </div>
       </body>
     </html>

@@ -1,79 +1,71 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
-import { createChart, type IChartApi, type ISeriesApi, LineSeries, type LineData } from "lightweight-charts";
-import { RangeButtons, type Range } from "./RangeButtons";
+import { useEffect, useRef, useState } from "react";
+import {
+  createChart,
+  ColorType,
+  IChartApi,
+  ISeriesApi,
+  LineData,
+  LineSeries,
+  Time,
+} from "lightweight-charts";
 
-type Point = { time: number; value: number };
+type Point = { time: number; close: number };
 
 export default function StockChart({ symbol }: { symbol: string }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
-  const seriesRef = useRef<ISeriesApi<"Line"> | null>(null);
+  const seriesRef = useRef<ISeriesApi<typeof LineSeries> | null>(null);
 
-  const [range, setRange] = useState<Range>("1Y");
-  const [loading, setLoading] = useState(false);
+  const [range, setRange] = useState<"1D" | "1W" | "3M" | "1Y" | "5Y">("1Y");
   const [error, setError] = useState<string | null>(null);
-
-  const height = 320;
 
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const chart = createChart(containerRef.current, {
-      height,
+    const el = containerRef.current;
+
+    const chart = createChart(el, {
+      width: el.clientWidth,
+      height: el.clientHeight || 360,
       layout: {
-        background: { color: "#0b0f14" }, // dark background
-        textColor: "#d1d4dc",             // TradingView-like text
+        background: { type: ColorType.Solid, color: "transparent" },
+        textColor: "rgba(255,255,255,0.85)",
       },
       grid: {
-        vertLines: { color: "#1f2937" },
-        horzLines: { color: "#1f2937" },
+        vertLines: { color: "rgba(255,255,255,0.06)" },
+        horzLines: { color: "rgba(255,255,255,0.06)" },
       },
-      rightPriceScale: {
-        borderVisible: false,
-        textColor: "#9ca3af",
-      },
-      timeScale: {
-        borderVisible: false,
-        timeVisible: true,
-        secondsVisible: false,
-      },
+      rightPriceScale: { borderColor: "rgba(255,255,255,0.10)" },
+      timeScale: { borderColor: "rgba(255,255,255,0.10)" },
       crosshair: {
-        vertLine: {
-          color: "#6b7280",
-          width: 1,
-          style: 1,
-        },
-        horzLine: {
-          color: "#6b7280",
-          width: 1,
-          style: 1,
-        },
+        vertLine: { color: "rgba(255,255,255,0.15)" },
+        horzLine: { color: "rgba(255,255,255,0.15)" },
       },
     });
 
-
-    chartRef.current = chart;
-
-    // ✅ v5+ API: addSeries(LineSeries, options)
+    // ✅ v5 API: addSeries(LineSeries, options)
     const series = chart.addSeries(LineSeries, {
-      color: "#22c55e",      // green line
+      color: "rgba(34,197,94,1)", // emerald-ish
       lineWidth: 2,
     });
 
+    chartRef.current = chart;
     seriesRef.current = series;
 
-    const handleResize = () => {
-      if (!containerRef.current) return;
-      chart.applyOptions({ width: containerRef.current.clientWidth });
-    };
-
-    handleResize();
-    window.addEventListener("resize", handleResize);
+    // ✅ ResizeObserver keeps chart inside container
+    const ro = new ResizeObserver(() => {
+      if (!containerRef.current || !chartRef.current) return;
+      const w = containerRef.current.clientWidth;
+      const h = containerRef.current.clientHeight;
+      chartRef.current.applyOptions({ width: w, height: h });
+      chartRef.current.timeScale().fitContent();
+    });
+    ro.observe(el);
 
     return () => {
-      window.removeEventListener("resize", handleResize);
+      ro.disconnect();
       chart.remove();
       chartRef.current = null;
       seriesRef.current = null;
@@ -84,33 +76,31 @@ export default function StockChart({ symbol }: { symbol: string }) {
     let cancelled = false;
 
     async function load() {
-      if (!seriesRef.current) return;
-      setLoading(true);
       setError(null);
 
       try {
         const res = await fetch(`/api/history?symbol=${symbol}&range=${range}`);
-        const json = await res.json();
-        if (!res.ok) throw new Error(json?.error || "Failed to load history");
+        const data = await res.json();
 
-        type Point = { time: number; close: number; volume: number };
+        if (!res.ok) throw new Error(data?.error || "History fetch failed");
 
-        const data: LineData[] = (json as Point[]).map((p) => ({
-          time: p.time as any,
+        const points: Point[] = (Array.isArray(data) ? data : []).map((p: any) => ({
+          time: p.time,
+          close: p.close,
+        }));
+
+        if (!points.length) throw new Error(`No history data for ${symbol}`);
+        if (cancelled) return;
+
+        const lineData: LineData<Time>[] = points.map((p) => ({
+          time: p.time as Time,
           value: p.close,
         }));
 
-
-
-
-        if (!cancelled) {
-          seriesRef.current!.setData(data);
-          chartRef.current?.timeScale().fitContent();
-        }
+        seriesRef.current?.setData(lineData);
+        chartRef.current?.timeScale().fitContent();
       } catch (e: any) {
-        if (!cancelled) setError(e.message || "Error loading chart");
-      } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) setError(e.message || "Failed to load chart");
       }
     }
 
@@ -121,24 +111,29 @@ export default function StockChart({ symbol }: { symbol: string }) {
   }, [symbol, range]);
 
   return (
-    <div style={{ display: "grid", gap: 10 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <RangeButtons value={range} onChange={setRange} />
-        <div style={{ fontSize: 12, color: "#666" }}>
-          {loading ? "Loading..." : error ? error : ""}
-        </div>
+    <div className="h-full w-full">
+      {/* Range Buttons */}
+      <div className="mb-3 flex flex-wrap gap-2">
+        {(["1D", "1W", "3M", "1Y", "5Y"] as const).map((r) => (
+          <button
+            key={r}
+            onClick={() => setRange(r)}
+            className={[
+              "rounded-full px-3 py-1.5 text-xs font-bold border transition",
+              r === range
+                ? "bg-emerald-500/15 text-emerald-200 border-emerald-400/30"
+                : "bg-white/5 text-zinc-300 border-white/10 hover:bg-white/10",
+            ].join(" ")}
+          >
+            {r}
+          </button>
+        ))}
+
+        {error && <div className="ml-auto text-xs text-red-400">{error}</div>}
       </div>
 
-      <div
-        ref={containerRef}
-        style={{
-          width: "100%",
-          border: "1px solid #1f2937",
-          borderRadius: 16,
-          padding: 6,
-          background: "#0b0f14",
-        }}
-      />
+      {/* Chart Container */}
+      <div ref={containerRef} className="h-[360px] w-full overflow-hidden rounded-xl" />
     </div>
   );
 }
