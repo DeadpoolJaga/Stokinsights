@@ -25,8 +25,9 @@ export default function CompareChart({
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
-  const leftSeriesRef = useRef<ISeriesApi<typeof LineSeries> | null>(null);
-  const rightSeriesRef = useRef<ISeriesApi<typeof LineSeries> | null>(null);
+
+  const leftSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
+  const rightSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -58,7 +59,7 @@ export default function CompareChart({
     });
 
     const rightSeries = chart.addSeries(LineSeries, {
-      color: "rgba(56,189,248,1)", // cyan-ish
+      color: "rgba(56,189,248,1)",
       lineWidth: 2,
     });
 
