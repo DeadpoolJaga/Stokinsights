@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import CompareChart from "@/components/CompareChart";
 import { SYMBOLS } from "@/lib/symbols";
 import type { HistoryPoint } from "@/lib/metrics";
+import { useSearchParams } from "next/navigation";
 import {
   computeCorrelation,
   computeMaxDrawdownPct,
@@ -33,6 +34,7 @@ async function fetchJSON<T>(url: string): Promise<T> {
 export default function ComparePage() {
   const [left, setLeft] = useState("AAPL");
   const [right, setRight] = useState("MSFT");
+  const searchParams = useSearchParams();
   const [range, setRange] = useState<"1W" | "3M" | "1Y" | "5Y">("1Y");
 
   const [loading, setLoading] = useState(false);
@@ -46,6 +48,19 @@ export default function ComparePage() {
   const [rightSig, setRightSig] = useState<Signal | null>(null);
 
   const options = useMemo(() => SYMBOLS, []);
+  useEffect(() => {
+    const l = searchParams.get("left");
+    const r = searchParams.get("right");
+    const rangeParam = searchParams.get("range");
+
+    if (l) setLeft(l.toUpperCase());
+    if (r) setRight(r.toUpperCase());
+    if (rangeParam && ["1W", "3M", "1Y", "5Y"].includes(rangeParam)) {
+      setRange(rangeParam as any);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   useEffect(() => {
     let cancelled = false;
